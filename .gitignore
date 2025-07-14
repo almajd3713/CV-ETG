@@ -1,0 +1,5 @@
+.github
+images/
+testing.ipynb
+*.log
+images_data.json
