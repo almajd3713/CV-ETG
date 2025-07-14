@@ -1,5 +1,6 @@
 .github
-images/
+**/**.png
 testing.ipynb
 *.log
 images_data.json
+*.mp4

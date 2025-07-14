@@ -5,9 +5,9 @@ import json
 import logging
 # Set up logging
 base_dir = os.path.dirname(os.path.abspath(__file__))
-log_filename = os.path.join(base_dir, "download_images.log")
-images_dir = os.path.join(base_dir, "images")
-images_json_dir = os.path.join(base_dir, "images_data.json")
+log_filename = os.path.join(base_dir, "logs", "download_images.log")
+images_dir = os.path.join(base_dir, "raw_images")
+images_json_dir = os.path.join(base_dir, "raw_images_data.json")
 if not os.path.exists(images_dir):
     os.makedirs(images_dir)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=log_filename, filemode='w')
