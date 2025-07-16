@@ -33,13 +33,14 @@ def get_image_data(table):
   for row in rows:
     try:
       image_block = row.find_all("td", recursive=False)
-      image_url = image_block[0].find("a")["href"]
+      image_url = image_block[0].find("a").find('img')["src"]
       image_article = image_block[1].find("a").text.strip()
       image_name = image_block[1].find("a")["title"].strip()
       image_data.append({
         "web_url": image_url,
         "article": wiki_base_url + image_article,
-        "name": image_name
+        "name": image_name,
+        "class_name": image_name.lower().replace(" ", "_").replace("'", "").replace("-", "_"),
       })
     except Exception as e:
       print("Error processing row:", e)
@@ -49,11 +50,14 @@ def get_image_data(table):
 def download_images(image_data_list):
   for image_data in image_data_list:
     try:
+      image_data["url"] = f"{images_dir}/{image_data['name']}.png"
+      if os.path.exists(image_data["url"]):
+        logging.info(f"Image {image_data['name']} already exists, skipping download.")
+        continue
       response = requests.get(image_data["web_url"], )
       if response.status_code == 200:
         with open(f"{images_dir}/{image_data['name']}.png", "wb") as f:
           f.write(response.content)
-        image_data["url"] = f"{images_dir}/{image_data['name']}.png"
         logging.info(f"Downloaded {image_data['name']}")
       else:
         logging.error(f"Failed to download {image_data['name']}: {response.status_code}")
@@ -68,6 +72,12 @@ def parallel_download_images(images_data, thread_count=10):
     futures = [executor.submit(download_images, image_data) for image_data in images_data_list]
     for future in futures:
       future.result()  # Wait for all downloads to complete
+
+def dump_classes(image_data):
+  classes = set()
+  for image in image_data:
+    classes.add(image["name"].lower().replace(" ", "_").replace("'", "").replace("-", "_"))
+  return list(classes)
 
 if __name__ == "__main__":
   logging.info("Starting to process the page.")
@@ -89,7 +99,11 @@ if __name__ == "__main__":
   parallel_download_images(all_image_data)
   logging.info("All images downloaded successfully.")
   logging.info("Saving image data to file...")
+  final_output = {
+    "images": all_image_data,
+    "classes": dump_classes(all_image_data)
+  }
   with open(images_json_dir, "w") as f:
-    json.dump(all_image_data, f, indent=4)
+    json.dump(final_output, f, indent=4)
   logging.info("Image data saved successfully.")
   logging.info("Process completed.")

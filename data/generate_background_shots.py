@@ -2,7 +2,7 @@ import os
 import cv2
 import logging
 import random
-
+import json
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 background_videos_dir = os.path.join(base_dir, "background_videos")
@@ -42,12 +42,20 @@ def get_random_screenshots_batch(videos, count=10):
     return all_screenshots
   
 def save_screenshots(screenshots, output_dir):
+    metadata = []
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     for idx, screenshot in enumerate(screenshots):
         screenshot_filename = os.path.join(output_dir, f"screenshot_{idx}.png")
         cv2.imwrite(screenshot_filename, screenshot)
-        print(f"Saved screenshot: {screenshot_filename}")
+        metadata.append({
+            "filename": screenshot_filename,
+            "type": "image",
+        })
+        logging.info(f"Saved screenshot: {screenshot_filename}")
+    with open(os.path.join(output_dir, "background_info.json"), 'w') as f:
+        json.dump(metadata, f, indent=4)
+        
 
 if __name__ == "__main__":
   logging.info("Starting to process background videos.")
