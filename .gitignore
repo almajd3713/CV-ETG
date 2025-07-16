@@ -4,3 +4,4 @@ testing.ipynb
 *.log
 images_data.json
 *.mp4
+synthesized_images/
