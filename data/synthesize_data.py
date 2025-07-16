@@ -78,7 +78,8 @@ class DataSynthesizer:
 
   def load_classes_sample(self, max_sample_size=5):
     sample_classes = self.get_underfilled_classes()
-    sample_classes = random.sample(sample_classes, random.randint(1, max_sample_size))
+    sample_size = min(len(sample_classes), max_sample_size)
+    sample_classes = random.sample(sample_classes, sample_size)
     sample = [it for it in self.image_data if it['class_name'] in sample_classes]
     return sample, [self.load_image(image['url'], image['name'], scale=True) for image in sample]
 
