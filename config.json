@@ -1,0 +1,7 @@
+{
+  "locations": {
+    "synthesize_data": "data/synthesize_data",
+    "raw_images": "data/raw_images",
+    "background_images": "data/background_images"
+  }
+}
