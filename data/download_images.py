@@ -37,7 +37,7 @@ def get_image_data(table):
       image_url = image_block[0].find("a").find('img').get("data-src")
       # Some images don't have data-src, but do have proper href
       if not image_url:
-        image_url = image_block[0].find("a").get("href")
+        image_url = image_block[0].find("a")['href']
       image_article = image_block[1].find("a").text.strip()
       image_name = image_block[1].find("a")["title"].strip()
       image_data.append({
