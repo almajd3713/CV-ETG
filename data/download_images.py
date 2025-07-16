@@ -40,6 +40,13 @@ def get_image_data(table):
         image_url = image_block[0].find("a")['href']
       image_article = image_block[1].find("a").text.strip()
       image_name = image_block[1].find("a")["title"].strip()
+      # Master rounds have the same article page and name, but the image png link contains the name of the gun
+      if image_name == "Master Round":
+        image_name = image_name = [x for x in image_url.split("/") if x.endswith(".png")][0].replace(".png", "")
+        # Last part of name is in roman number, capitalizing it
+        logging.info(f"Master round detected, using name: {image_name}")
+        image_name = image_name.replace("_", " ")
+        print(image_name)
       image_data.append({
         "web_url": image_url,
         "article": wiki_base_url + image_article,
