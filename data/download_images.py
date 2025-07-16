@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import logging
+import base64
 # Set up logging
 base_dir = os.path.dirname(os.path.abspath(__file__))
 log_filename = os.path.join(base_dir, "logs", "download_images.log")
@@ -33,7 +34,10 @@ def get_image_data(table):
   for row in rows:
     try:
       image_block = row.find_all("td", recursive=False)
-      image_url = image_block[0].find("a").find('img')["src"]
+      image_url = image_block[0].find("a").find('img').get("data-src")
+      # Some images don't have data-src, but do have proper href
+      if not image_url:
+        image_url = image_block[0].find("a").get("href")
       image_article = image_block[1].find("a").text.strip()
       image_name = image_block[1].find("a")["title"].strip()
       image_data.append({
@@ -47,6 +51,18 @@ def get_image_data(table):
       print("Row content:", row)
   return image_data
 
+def get_base64_image(image_url):
+  b64string = image_url.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+  b64string = b64string.replace('%3D', '=').replace('%2F', '/').replace('%2B', '+')
+  
+  # Fix padding
+  missing_padding = len(b64string) % 4
+  if missing_padding:
+      b64string += '=' * (4 - missing_padding)
+
+  header, encoded = b64string.split(",", 1)
+  return base64.b64decode(encoded)
+
 def download_images(image_data_list):
   for image_data in image_data_list:
     try:
@@ -54,6 +70,14 @@ def download_images(image_data_list):
       if os.path.exists(image_data["url"]):
         logging.info(f"Image {image_data['name']} already exists, skipping download.")
         continue
+      # # Check if its a base64 image, if so, decode it
+      # if image_data["web_url"].startswith("data:image"):
+      #   image_bytes = get_base64_image(image_data["web_url"])
+      #   with open(f"{images_dir}/{image_data['name']}.png", "wb") as f:
+      #     f.write(image_bytes)
+      #   logging.info(f"Saved base64 image {image_data['name']}")
+      #   continue
+      # # Otherwise, download the image from the web URL
       response = requests.get(image_data["web_url"], )
       if response.status_code == 200:
         with open(f"{images_dir}/{image_data['name']}.png", "wb") as f:
