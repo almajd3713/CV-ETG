@@ -1,16 +1,27 @@
 {
   "locations": {
-    "synthesize_data": "synthesize_data",
+    "synthesize_data": "synthesized_images",
     "synthetic_data_metadata": "synthesized_images/synthesized_data.json",
-    "labels": "labels.json",
+    "labels": "data/labels.json",
     "raw_images": "raw_images",
     "raw_images_metadata": "raw_images_data.json",
     "background_images": "background_images"
   },
   "model": {
     "name": "RTDetrV2_r50vd",
-    "pretrained_weights": "PekingU/RTDetrV2_r50vd",
-    "image_processor": "PekingU/RTDetrV2_r50vd",
-    "label_mode": "pytorch"
+    "pretrained_weights": "PekingU/rtdetr_v2_r50vd",
+    "image_processor": "PekingU/rtdetr_v2_r50vd",
+    "label_mode": "coco"
+  },
+  "training": {
+    "output_dir": "output",
+    "input_size": {
+      "height": 1080,
+      "width": 1920
+    },
+    "train_input_size": {
+      "height": 384,
+      "width": 384
+    }
   }
 }
