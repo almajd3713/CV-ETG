@@ -1,13 +1,14 @@
 import json
 import os
 import logging
+import cv2
 
 
 with open("config.json", 'r') as f:
   config = json.load(f)
 base_dir = os.path.dirname(os.path.abspath(__file__))
 synthesized_metadata = os.path.join(base_dir, config["locations"]["synthetic_data_metadata"])
-output_labels = os.path.join(base_dir, config["locations"]["labels"])
+output_labels = os.path.join(config["locations"]["labels"])
 
 raw_image_data = os.path.join(base_dir, config["locations"]["raw_images_metadata"])
 with open(raw_image_data, 'r') as f:
@@ -32,19 +33,21 @@ class LabelGenerator:
             data = json.load(f)
         logging.info(f"Loaded {len(data)} items from metadata file.")
         labels = []
-        for item in data:
+        if self.mode == 'pytorch':
+          for item in data:
             logging.info(f"Processing item: {item['name']}")
-            if self.mode == 'pytorch':    
-                labels.append(self.generate_pytorch_representation(item))
-            elif self.mode == 'coco':
-                labels = {"categories": [], "annotations": [], "images": []}
+            labels.append(self.generate_pytorch_representation(item))
+        elif self.mode == 'coco':
+            labels = {"categories": [], "annotations": [], "images": []}
+            for item in data:
                 category, annotation, image = self.generate_coco_representation(item)
-                labels["categories"].append(category)
+                if not category['id'] in [cat['id'] for cat in labels["categories"]]:
+                  labels["categories"].append(category)
                 labels["annotations"].append(annotation)
                 labels["images"].append(image)
-            else:
-                raise ValueError(f"Unsupported mode: {self.mode}")
-            logging.info(f"Generated label for item: {item['name']}")
+        else:
+            raise ValueError(f"Unsupported mode: {self.mode}")
+        logging.info(f"Generated label for item: {item['name']}")
 
         with open(self.output_file, 'w') as f:
             json.dump(labels, f, indent=4)
@@ -56,23 +59,26 @@ class LabelGenerator:
         "image_id": item['name'] + '.png',
         "class": item['class_name'],
         "bbox": item['bbox'],
+        "path": item['path'],
       }
-    def generate_coco_representation(self, item):
-        category = [{
+    def generate_coco_representation(self, item):          
+        category = {
           "id": classes.index(item['class_name']) + 1,
           "name": item['class_name'],
-        }]
+        }
+        width = item['bbox']['x2'] - item['bbox']['x1']
+        height = item['bbox']['y2'] - item['bbox']['y1']
         annotation = {
-          "image_id": item['name'] + '.png',
+          "image_id": item['name'],
           "category_id": classes.index(item['class_name']) + 1,
           "bbox": item['bbox'],
-          "area": item['bbox'][2] * item['bbox'][3],
+          "area": width * height,
         }
         image = {
           "id": item['name'],
-          "width": item['bbox'][2] - item['bbox'][0],
-          "height": item['bbox'][3] - item['bbox'][1],
-          "file_name": item['name'] + '.png',
+          "width": config["training"]["input_size"]["width"],
+          "height": config["training"]["input_size"]["height"],
+          "path": os.path.join(base_dir, config["locations"]["synthesize_data"], item['name'] + '.png'),
         }
         return category, annotation, image
       

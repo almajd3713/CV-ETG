@@ -63,7 +63,7 @@ if __name__ == "__main__":
   video_files = load_videos(background_videos_dir)
   logging.info(f"Found {len(video_files)} videos.")
   logging.info("Generating random screenshots from videos.")
-  screenshots = get_random_screenshots_batch(video_files, count=10)
+  screenshots = get_random_screenshots_batch(video_files, count=50)
   logging.info(f"Generated {len(screenshots)} screenshots.")
   logging.info("Saving screenshots to output directory.")
   save_screenshots(screenshots, background_images_dir)

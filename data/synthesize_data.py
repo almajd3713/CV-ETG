@@ -166,7 +166,7 @@ if __name__ == "__main__":
   data_file = os.path.join(base_dir, "raw_images_data.json")
   backgrounds_file = os.path.join(base_dir, "background_images", "background_info.json")
 
-  synthesizer = DataSynthesizer(data_file, backgrounds_file)
+  synthesizer = DataSynthesizer(data_file, backgrounds_file, max_frequency=5)
   logging.info("Loading classes and images...")
   synthesizer.backgrounds = synthesizer.load_backgrounds()
   if not synthesizer.backgrounds:
