@@ -39,7 +39,6 @@ class LabelGenerator:
         logging.info(f"Loaded {len(data)} items from metadata file.")
         labels = []
         if self.mode == 'yolo':
-          # Empty yolo/ dir if it exists
           for item in data:
             logging.info(f"Processing item: {item['name']}")
             label, label_str = self.generate_yolo_representation(item)
@@ -110,6 +109,8 @@ class LabelGenerator:
         "y_center": y_center,
         "width": width,
         "height": height,
+        "image_path": item['path'],
+        "label_path": os.path.join(base_dir, "yolo", "labels", item['name'] + '.txt'),
       }
       rep_str = f"{rep_obj['class']} {rep_obj['x_center']} {rep_obj['y_center']} {rep_obj['width']} {rep_obj['height']}\n"
       return rep_obj, rep_str

@@ -7,3 +7,4 @@ images_data.json
 synthesized_images/
 __pycache__/
 data/yolo
+model/yolo/dataset
