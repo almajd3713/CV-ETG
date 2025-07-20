@@ -11,7 +11,7 @@
     "name": "RTDetrV2_r50vd",
     "pretrained_weights": "PekingU/rtdetr_v2_r50vd",
     "image_processor": "PekingU/rtdetr_v2_r50vd",
-    "label_mode": "coco"
+    "label_mode": "yolo"
   },
   "training": {
     "output_dir": "output",

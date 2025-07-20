@@ -15,6 +15,11 @@ with open(raw_image_data, 'r') as f:
   raw_image_data = json.load(f)
   classes = raw_image_data['classes']
 
+
+categories = raw_image_data['classes']
+id2label = {index: x for index, x in enumerate(categories, start=1)}
+label2id = {v: k for k, v in id2label.items()}
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=os.path.join(base_dir, "logs", "generate_labels.log"), filemode='w')
 output_mode = config['model']['label_mode']
 
@@ -33,7 +38,16 @@ class LabelGenerator:
             data = json.load(f)
         logging.info(f"Loaded {len(data)} items from metadata file.")
         labels = []
-        if self.mode == 'pytorch':
+        if self.mode == 'yolo':
+          # Empty yolo/ dir if it exists
+          for item in data:
+            logging.info(f"Processing item: {item['name']}")
+            label, label_str = self.generate_yolo_representation(item)
+            item['bbox'] = label
+            labels.append(label)
+            # YOLO also requires proper file structure
+            add_yolo_label(item['path'], label_str)
+        elif self.mode == 'pytorch':
           for item in data:
             logging.info(f"Processing item: {item['name']}")
             labels.append(self.generate_pytorch_representation(item))
@@ -81,7 +95,44 @@ class LabelGenerator:
           "path": os.path.join(base_dir, config["locations"]["synthesize_data"], item['name'] + '.png'),
         }
         return category, annotation, image
-      
+    def generate_yolo_representation(self, item):
+      image_dims = config["training"]["input_size"]
+      category = label2id[item['class_name']]
+      # All are normalized to [0, 1]
+      x_center = (item['bbox']['x1'] + item['bbox']['x2']) / 2 / image_dims['width']
+      y_center = (item['bbox']['y1'] + item['bbox']['y2']) / 2 / image_dims['height']
+      width = (item['bbox']['x2'] - item['bbox']['x1']) / image_dims['width']
+      height = (item['bbox']['y2'] - item['bbox']['y1']) / image_dims['height']
+
+      rep_obj = {
+        "class": category,
+        "x_center": x_center,
+        "y_center": y_center,
+        "width": width,
+        "height": height,
+      }
+      rep_str = f"{rep_obj['class']} {rep_obj['x_center']} {rep_obj['y_center']} {rep_obj['width']} {rep_obj['height']}\n"
+      return rep_obj, rep_str
+
+import shutil
+def add_yolo_label(image_path, label_str):
+  """
+  Copy image over to yolo/images if it doesn't exist
+  and write the label to a .txt file in yolo/labels, appending to it if it exists, creating it if it doesn't.
+  """
+  image_new_path = os.path.join(base_dir, "yolo", "images", os.path.basename(image_path))
+  label_path = os.path.join(base_dir, "yolo", "labels", os.path.basename(image_path).replace('.png', '.txt'))
+  os.makedirs(os.path.dirname(image_new_path), exist_ok=True)
+  os.makedirs(os.path.dirname(label_path), exist_ok=True)
+
+  # Copy image
+  if not os.path.exists(image_new_path):
+      shutil.copy(image_path, image_new_path)
+
+  # Write label
+  with open(label_path, 'a') as f:
+      f.write(label_str)
+
 if __name__ == "__main__":
     label_generator = LabelGenerator(synthesized_metadata, output_labels)
     label_generator.generate_labels()
