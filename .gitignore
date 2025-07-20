@@ -8,3 +8,5 @@ synthesized_images/
 __pycache__/
 data/yolo
 model/yolo/dataset
+model/weights
+model/yolo/runs

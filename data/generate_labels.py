@@ -104,7 +104,7 @@ class LabelGenerator:
       height = (item['bbox']['y2'] - item['bbox']['y1']) / image_dims['height']
 
       rep_obj = {
-        "class": category,
+        "class": category - 1,
         "x_center": x_center,
         "y_center": y_center,
         "width": width,
