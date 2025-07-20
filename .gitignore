@@ -10,3 +10,4 @@ data/yolo
 model/yolo/dataset
 model/weights
 model/yolo/runs
+wandb/
